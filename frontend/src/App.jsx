@@ -6,13 +6,12 @@ function App() {
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    // Se cambia la URL fija por una ruta relativa para producción en Netlify
-    fetch("/api/productos")
+    // Apunta directamente al archivo JSON alojado en Netlify
+    fetch("/productos.json")
       .then((response) => {
         if (!response.ok) {
-          throw new Error("Error en el servidor");
+          throw new Error("Error al cargar los datos");
         }
-
         return response.json();
       })
       .then((data) => {
