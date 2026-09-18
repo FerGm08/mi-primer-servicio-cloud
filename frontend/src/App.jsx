@@ -1,53 +1,23 @@
 import { useEffect, useState } from "react";
+import productosData from "./productos.json";
 
 function App() {
   const [productos, setProductos] = useState([]);
   const [cargando, setCargando] = useState(true);
-  const [error, setError] = useState(false);
 
   useEffect(() => {
-    // Apunta directamente al archivo JSON alojado en Netlify
-    fetch("/productos.json")
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Error al cargar los datos");
-        }
-        return response.json();
-      })
-      .then((data) => {
-        setProductos(data);
-        setCargando(false);
-      })
-      .catch((error) => {
-        console.error(error);
-        setError(true);
-        setCargando(false);
-      });
+    setProductos(productosData);
+    setCargando(false);
   }, []);
 
   return (
-    <div
-      style={{
-        padding: "40px",
-        fontFamily: "Arial",
-      }}
-    >
+    <div style={{ padding: "40px", fontFamily: "Arial" }}>
       <h1>Mi Primer Servicio Cloud</h1>
-
-      <p>
-        Aplicación React consumiendo una API desarrollada con Node.js
-      </p>
+      <p>Aplicación React consumiendo una API desarrollada con Node.js</p>
 
       {cargando && <p>Cargando información...</p>}
 
-      {error && (
-        <p>
-          No fue posible conectar con el servicio.
-        </p>
-      )}
-
       {!cargando &&
-        !error &&
         productos.map((producto) => (
           <div
             key={producto.id}
@@ -59,14 +29,8 @@ function App() {
             }}
           >
             <h3>{producto.nombre}</h3>
-
-            <p>
-              Precio: ${producto.precio}
-            </p>
-
-            <p>
-              Categoría: {producto.categoria}
-            </p>
+            <p>Precio: ${producto.precio}</p>
+            <p>Categoría: {producto.categoria}</p>
           </div>
         ))}
     </div>
