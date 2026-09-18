@@ -1,14 +1,74 @@
 [
   {
     "id": 1,
-    "nombre": "Laptop,",
-    "precio": 13.5,
-    "categoria": "computadoras"
+    "nombre": "Laptop",
+    "precio": 15000,
+    "categoria": "Computadoras"
   },
   {
     "id": 2,
-    "nombre": "Mouse,",
+    "nombre": "Mouse",
     "precio": 350,
-    "categoria": "accesorios"
+    "categoria": "Accesorios"
+  },
+  {
+    "id": 3,
+    "nombre": "Teclado",
+    "precio": 700,
+    "categoria": "Accesorios"
+  },
+  {
+    "id": 4,
+    "nombre": "Router",
+    "precio": 1200,
+    "categoria": "Redes"
+  },
+  {
+    "id": 5,
+    "nombre": "Disco SSD",
+    "precio": 1800,
+    "categoria": "Almacenamiento"
+  },
+  {
+    "id": 6,
+    "nombre": "Monitor 24 pulgadas",
+    "precio": 3200,
+    "categoria": "Monitores"
+  },
+  {
+    "id": 7,
+    "nombre": "Camara Web HD",
+    "precio": 850,
+    "categoria": "Accesorios"
+  },
+  {
+    "id": 8,
+    "nombre": "Audifonos Gamer",
+    "precio": 1100,
+    "categoria": "Accesorios"
+  },
+  {
+    "id": 9,
+    "nombre": "Switch de Red 8 Puertos",
+    "precio": 650,
+    "categoria": "Redes"
+  },
+  {
+    "id": 10,
+    "nombre": "Memoria RAM 16GB",
+    "precio": 950,
+    "categoria": "Componentes"
+  },
+  {
+    "id": 11,
+    "nombre": "Disco Duro Externo 1TB",
+    "precio": 1400,
+    "categoria": "Almacenamiento"
+  },
+  {
+    "id": 12,
+    "nombre": "PC de Escritorio",
+    "precio": 18500,
+    "categoria": "Computadoras"
   }
 ]
