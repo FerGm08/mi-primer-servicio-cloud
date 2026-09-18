@@ -6,7 +6,8 @@ function App() {
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    fetch("http://localhost:3000/api/productos")
+    // Se cambia la URL fija por una ruta relativa para producción en Netlify
+    fetch("/api/productos")
       .then((response) => {
         if (!response.ok) {
           throw new Error("Error en el servidor");
