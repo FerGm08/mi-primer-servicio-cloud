@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import productosData from "./productos.json";
 
 function App() {
   const [productos, setProductos] = useState([]);
@@ -17,13 +16,38 @@ function App() {
     version: "1.0"
   });
 
+  // URL del archivo CSV publicado desde Google Sheets (Reto 4)
+  const SPREADSHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQtv8X1VrgIth_-sYJ1aCtItmwn92oq4cMQX6F6x7jhAWCuLsMSSGHiRBUZ99GMORAsUQJYPCkPDhmh/pub?output=csv";
+
   useEffect(() => {
-    setProductos(productosData);
-    setCargando(false);
+    fetch(SPREADSHEET_CSV_URL)
+      .then((res) => res.text())
+      .then((csvText) => {
+        // Separar las filas ignorando renglones vacíos
+        const lineas = csvText.split("\n").filter((linea) => linea.trim() !== "");
+        
+        // Mapear cada renglón descartando la fila de encabezados [0]
+        const datosParseados = lineas.slice(1).map((linea, index) => {
+          const valores = linea.split(",");
+          return {
+            id: valores[0] ? valores[0].trim() : index + 1,
+            nombre: valores[1] ? valores[1].trim() : "",
+            precio: valores[2] ? parseFloat(valores[2].trim().replace(",", "")) : 0,
+            categoria: valores[3] ? valores[3].trim() : "Sin Categoría",
+          };
+        });
+
+        setProductos(datosParseados);
+        setCargando(false);
+      })
+      .catch((error) => {
+        console.error("Error al obtener los datos de Google Sheets:", error);
+        setCargando(false);
+      });
   }, []);
 
-  // Extraer categorías únicas para el selector
-  const categorias = ["Todas", ...new Set(productosData.map((p) => p.categoria))];
+  // Extraer categorías únicas dinámicamente según la hoja de cálculo
+  const categorias = ["Todas", ...new Set(productos.map((p) => p.categoria))];
 
   // Filtrar productos por búsqueda y categoría
   const productosFiltrados = productos.filter((producto) => {
@@ -40,7 +64,7 @@ function App() {
   return (
     <div style={{ padding: "40px", fontFamily: "Arial", maxWidth: "600px", margin: "0 auto" }}>
       <h1>Mi Primer Servicio Cloud</h1>
-      <p>Aplicación React consumiendo una API desarrollada con Node.js</p>
+      <p>Aplicación React consumiendo inventario en tiempo real desde Google Sheets</p>
 
       {/* Reto 3: Estado del Servicio */}
       <div style={{ background: "#f0f0f0", padding: "10px 15px", borderRadius: "5px", marginBottom: "20px", color: "#333" }}>
@@ -78,7 +102,7 @@ function App() {
         </div>
       </div>
 
-      {cargando && <p>Cargando información...</p>}
+      {cargando && <p>Cargando información desde la nube...</p>}
 
       {/* Lista de productos filtrados */}
       {!cargando &&
