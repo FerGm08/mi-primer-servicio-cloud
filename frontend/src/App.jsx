@@ -214,7 +214,7 @@ function App() {
       {/* Header */}
       <header style={styles.header}>
         <div>
-          <h1 style={{ margin: 0, fontSize: "1.8rem", color: "#f8fafc" }}>Mi Primer Servicio Cloud</h1>
+          <h1 style={{ margin: 0, fontSize: "1.8rem", color: "#f8fafc" }}>Sistema CRUD en la nube</h1>
           <p style={{ margin: "4px 0 0 0", color: "#94a3b8", fontSize: "0.9rem" }}>Gestión de inventario y Google Sheets en tiempo real</p>
         </div>
         <button onClick={() => setAutenticado(false)} style={styles.logoutButton}>
