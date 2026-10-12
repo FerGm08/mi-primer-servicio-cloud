@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
-// URL de tu API REST alojada en Netlify Functions
-const API_URL = "/.netlify/functions/productos";
+// URL de tu API de Apps Script conectada a Google Sheets
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwhCocsZ3zEH45F5-DqaCsvNaeQD4Zlvk0lEkdyC9sFXI5NZWAosW8JlMTR4FGxRlJF/exec";
 
 function App() {
   // Estado para controlar el inicio de sesión
@@ -25,26 +25,26 @@ function App() {
   const [busqueda, setBusqueda] = useState("");
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState("Todas");
 
-  // Estado del servicio
+  // Estado del servicio (Reto 3)
   const [estadoServicio] = useState({
     estado: "Online",
-    servidor: "Netlify Functions + Google Sheets",
-    servicio: "API REST Cloud",
+    servidor: "Google Apps Script Cloud",
+    servicio: "Cloud API REST",
     version: "1.0"
   });
 
-  // Operación READ: Obtener registros desde Netlify Functions
+  // Operación READ: Obtener registros desde Google Sheets vía Apps Script
   useEffect(() => {
     if (autenticado) {
       setCargando(true);
-      fetch(API_URL)
+      fetch(APPS_SCRIPT_URL)
         .then((res) => res.json())
         .then((data) => {
           setProductos(data);
           setCargando(false);
         })
         .catch((error) => {
-          console.error("Error al obtener los datos:", error);
+          console.error("Error al obtener los datos de Google Sheets:", error);
           setCargando(false);
         });
     }
@@ -70,12 +70,12 @@ function App() {
     }
 
     if (idEditando !== null) {
-      // UPDATE (Actualizar mediante PUT)
+      // UPDATE (Actualizar)
       try {
-        await fetch(`${API_URL}/${idEditando}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
+        await fetch(APPS_SCRIPT_URL, {
+          method: "POST",
           body: JSON.stringify({
+            action: "update",
             id: idEditando,
             nombre,
             precio: parseFloat(precio),
@@ -93,16 +93,16 @@ function App() {
         );
         setIdEditando(null);
       } catch (error) {
-        console.error("Error al actualizar:", error);
-        alert("Hubo un error al actualizar el registro.");
+        console.error("Error al actualizar el registro:", error);
+        alert("Hubo un error al actualizar en la nube.");
       }
     } else {
-      // CREATE (Crear mediante POST)
+      // CREATE (Crear)
       try {
-        const response = await fetch(API_URL, {
+        const response = await fetch(APPS_SCRIPT_URL, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
+            action: "create",
             nombre,
             precio: parseFloat(precio),
             categoria,
@@ -120,8 +120,8 @@ function App() {
         };
         setProductos([...productos, nuevoProducto]);
       } catch (error) {
-        console.error("Error al crear:", error);
-        alert("Hubo un error al guardar el registro.");
+        console.error("Error al crear el registro:", error);
+        alert("Hubo un error al guardar en la nube.");
       }
     }
 
@@ -144,17 +144,19 @@ function App() {
 
   // Operación DELETE
   const handleEliminar = async (id) => {
-    if (window.confirm("¿Deseas eliminar este registro del sistema?")) {
+    if (window.confirm("¿Deseas eliminar este registro de la base de datos?")) {
       try {
-        await fetch(`${API_URL}/${id}`, {
-          method: "DELETE",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ id }),
+        await fetch(APPS_SCRIPT_URL, {
+          method: "POST",
+          body: JSON.stringify({
+            action: "delete",
+            id: id,
+          }),
         });
         setProductos(productos.filter((p) => p.id != id));
       } catch (error) {
-        console.error("Error al eliminar:", error);
-        alert("Hubo un error al eliminar el registro.");
+        console.error("Error al eliminar el registro:", error);
+        alert("Hubo un error al eliminar en la nube.");
       }
     }
   };
@@ -197,7 +199,7 @@ function App() {
     );
   }
 
-  // Filtrado de productos
+  // Filtrado de productos (Funcionalidad Adicional)
   const categorias = ["Todas", ...new Set(productos.map((p) => p.categoria || "Sin Categoría"))];
   const productosFiltrados = productos.filter((producto) => {
     const nombreProd = producto.nombre || "";
@@ -212,8 +214,8 @@ function App() {
       {/* Header */}
       <header style={styles.header}>
         <div>
-          <h1 style={{ margin: 0, fontSize: "1.8rem", color: "#f8fafc" }}>SISTEMA CRUD EN LA NUBE</h1>
-          <p style={{ margin: "4px 0 0 0", color: "#94a3b8", fontSize: "0.9rem" }}>Gestión de inventario y Google Sheets mediante Netlify Functions</p>
+          <h1 style={{ margin: 0, fontSize: "1.8rem", color: "#f8fafc" }}>Sistema CRUD en la nube</h1>
+          <p style={{ margin: "4px 0 0 0", color: "#94a3b8", fontSize: "0.9rem" }}>Gestión de inventario y Google Sheets en tiempo real</p>
         </div>
         <button onClick={() => setAutenticado(false)} style={styles.logoutButton}>
           Cerrar Sesión
@@ -228,7 +230,7 @@ function App() {
       </div>
 
       <div style={styles.mainGrid}>
-        {/* Formulario CRUD */}
+        {/* Formulario CRUD (Crear / Modificar) */}
         <div style={styles.card}>
           <h3 style={styles.cardTitle}>{idEditando !== null ? "✏️ Editar Producto" : "➕ Agregar Nuevo Producto"}</h3>
           <form onSubmit={handleSubmitProducto} style={styles.formGrid}>
@@ -304,7 +306,7 @@ function App() {
           </div>
 
           {cargando ? (
-            <p style={{ textAlign: "center", padding: "2rem", color: "#94a3b8" }}>Cargando información desde la nube...</p>
+            <p style={{ textAlign: "center", padding: "2rem", color: "#94a3b8" }}>Cargando información desde Google Sheets...</p>
           ) : productosFiltrados.length === 0 ? (
             <p style={{ textAlign: "center", padding: "2rem", color: "#94a3b8" }}>No se encontraron registros.</p>
           ) : (
@@ -346,73 +348,171 @@ function App() {
   );
 }
 
-// Estilos
+// Estilos limpios y modernos (Dark Theme profesional)
 const styles = {
   loginContainer: {
-    display: "flex", justifyContent: "center", alignItems: "center", minHeight: "100vh", backgroundColor: "#0f172a", fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    minHeight: "100vh",
+    backgroundColor: "#0f172a",
+    fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
   },
   loginCard: {
-    background: "#1e293b", padding: "2.5rem", borderRadius: "12px", boxShadow: "0 10px 25px rgba(0,0,0,0.5)", width: "350px", color: "#f8fafc",
+    background: "#1e293b",
+    padding: "2.5rem",
+    borderRadius: "12px",
+    boxShadow: "0 10px 25px rgba(0,0,0,0.5)",
+    width: "350px",
+    color: "#f8fafc",
   },
   dashboardContainer: {
-    padding: "30px 20px", fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif", backgroundColor: "#0f172a", minHeight: "100vh", color: "#f8fafc", boxSizing: "border-box",
+    padding: "30px 20px",
+    fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+    backgroundColor: "#0f172a",
+    minHeight: "100vh",
+    color: "#f8fafc",
+    boxSizing: "border-box",
   },
   header: {
-    display: "flex", justifyContent: "space-between", alignItems: "center", background: "#1e293b", padding: "20px 25px", borderRadius: "10px", marginBottom: "20px", boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    background: "#1e293b",
+    padding: "20px 25px",
+    borderRadius: "10px",
+    marginBottom: "20px",
+    boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
   },
   statusCard: {
-    display: "flex", gap: "20px", background: "#1e293b", padding: "12px 20px", borderRadius: "8px", marginBottom: "20px", fontSize: "0.9rem", color: "#cbd5e1", flexWrap: "wrap", borderLeft: "4px solid #22c55e",
+    display: "flex",
+    gap: "20px",
+    background: "#1e293b",
+    padding: "12px 20px",
+    borderRadius: "8px",
+    marginBottom: "20px",
+    fontSize: "0.9rem",
+    color: "#cbd5e1",
+    flexWrap: "wrap",
+    borderLeft: "4px solid #22c55e",
   },
   mainGrid: {
-    display: "flex", flexDirection: "column", gap: "20px", maxWidth: "1000px", margin: "0 auto",
+    display: "flex",
+    flexDirection: "column",
+    gap: "20px",
+    maxWidth: "1000px",
+    margin: "0 auto",
   },
   card: {
-    background: "#1e293b", padding: "20px 25px", borderRadius: "10px", boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
+    background: "#1e293b",
+    padding: "20px 25px",
+    borderRadius: "10px",
+    boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
   },
   cardTitle: {
-    margin: "0 0 15px 0", color: "#38bdf8", fontSize: "1.1rem",
+    margin: "0 0 15px 0",
+    color: "#38bdf8",
+    fontSize: "1.1rem",
   },
   formGrid: {
-    display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "15px",
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+    gap: "15px",
   },
   inputGroup: {
     marginBottom: "15px",
   },
   label: {
-    display: "block", marginBottom: "6px", fontSize: "0.85rem", color: "#cbd5e1", fontWeight: "600",
+    display: "block",
+    marginBottom: "6px",
+    fontSize: "0.85rem",
+    color: "#cbd5e1",
+    fontWeight: "600",
   },
   input: {
-    width: "100%", padding: "10px", borderRadius: "6px", border: "1px solid #475569", backgroundColor: "#0f172a", color: "#fff", fontSize: "0.95rem", boxSizing: "border-box",
+    width: "100%",
+    padding: "10px",
+    borderRadius: "6px",
+    border: "1px solid #475569",
+    backgroundColor: "#0f172a",
+    color: "#fff",
+    fontSize: "0.95rem",
+    boxSizing: "border-box",
   },
   primaryButton: {
-    padding: "10px 15px", backgroundColor: "#3b82f6", color: "#fff", border: "none", borderRadius: "6px", fontWeight: "bold", cursor: "pointer", transition: "background 0.2s",
+    padding: "10px 15px",
+    backgroundColor: "#3b82f6",
+    color: "#fff",
+    border: "none",
+    borderRadius: "6px",
+    fontWeight: "bold",
+    cursor: "pointer",
+    transition: "background 0.2s",
   },
   logoutButton: {
-    padding: "8px 16px", backgroundColor: "#ef4444", color: "#fff", border: "none", borderRadius: "6px", fontWeight: "bold", cursor: "pointer",
+    padding: "8px 16px",
+    backgroundColor: "#ef4444",
+    color: "#fff",
+    border: "none",
+    borderRadius: "6px",
+    fontWeight: "bold",
+    cursor: "pointer",
   },
   errorBanner: {
-    backgroundColor: "#ef444420", border: "1px solid #ef4444", color: "#f87171", padding: "10px", borderRadius: "6px", fontSize: "0.85rem", marginBottom: "15px", textAlign: "center",
+    backgroundColor: "#ef444420",
+    border: "1px solid #ef4444",
+    color: "#f87171",
+    padding: "10px",
+    borderRadius: "6px",
+    fontSize: "0.85rem",
+    marginBottom: "15px",
+    textAlign: "center",
   },
   table: {
-    width: "100%", borderCollapse: "collapse", textAlign: "left",
+    width: "100%",
+    borderCollapse: "collapse",
+    textAlign: "left",
   },
   thTr: {
-    borderBottom: "2px solid #334155", color: "#94a3b8", fontSize: "0.85rem", textTransform: "uppercase",
+    borderBottom: "2px solid #334155",
+    color: "#94a3b8",
+    fontSize: "0.85rem",
+    textTransform: "uppercase",
   },
   thTd: {
-    padding: "12px 10px", fontSize: "0.9rem",
+    padding: "12px 10px",
+    fontSize: "0.9rem",
   },
   trRow: {
     borderBottom: "1px solid #334155",
   },
   badge: {
-    backgroundColor: "#334155", color: "#38bdf8", padding: "4px 8px", borderRadius: "4px", fontSize: "0.8rem",
+    backgroundColor: "#334155",
+    color: "#38bdf8",
+    padding: "4px 8px",
+    borderRadius: "4px",
+    fontSize: "0.8rem",
   },
   editButton: {
-    backgroundColor: "#eab308", color: "#000", border: "none", padding: "6px 10px", borderRadius: "4px", marginRight: "6px", cursor: "pointer", fontWeight: "bold", fontSize: "0.8rem",
+    backgroundColor: "#eab308",
+    color: "#000",
+    border: "none",
+    padding: "6px 10px",
+    borderRadius: "4px",
+    marginRight: "6px",
+    cursor: "pointer",
+    fontWeight: "bold",
+    fontSize: "0.8rem",
   },
   deleteButton: {
-    backgroundColor: "#ef4444", color: "#fff", border: "none", padding: "6px 10px", borderRadius: "4px", cursor: "pointer", fontWeight: "bold", fontSize: "0.8rem",
+    backgroundColor: "#ef4444",
+    color: "#fff",
+    border: "none",
+    padding: "6px 10px",
+    borderRadius: "4px",
+    cursor: "pointer",
+    fontWeight: "bold",
+    fontSize: "0.8rem",
   },
 };
 
