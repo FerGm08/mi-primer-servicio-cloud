@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 
 // URL de tu API de Apps Script conectada a Google Sheets
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwhCocsZ3zEH45F5-DqaCsvNaeQD4Zlvk0lEkdyC9sFXI5NZWAosW8JlMTR4FGxRlJF/exec";
 
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzI9c7CpRg7XCMyrY6u9ZY4UXX2nm6ah1zSpv5Lm4WT0CGcS73YCXhcRfMLvu_uJ-AR/exec";
 function App() {
   // Estado para controlar el inicio de sesión
   const [autenticado, setAutenticado] = useState(false);
