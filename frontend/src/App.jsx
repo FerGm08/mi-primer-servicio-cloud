@@ -167,7 +167,7 @@ function App() {
     }
   };
 
-  // Manejador del Asistente de IA (Gemini)
+  // Manejador del Asistente de IA (Gemini) - CORREGIDO
   const handleEnviarAi = async (e) => {
     e.preventDefault();
     if (!promptAi.trim()) return;
@@ -186,7 +186,10 @@ function App() {
         })
       });
       const data = await response.json();
-      setMensajesAi(prev => [...prev, { sender: 'ai', text: data.response || "Respuesta recibida de la IA." }]);
+      
+      // Tomamos directamente la respuesta del backend de Apps Script
+      const respuestaIA = data.response || "No se obtuvo respuesta de la IA.";
+      setMensajesAi(prev => [...prev, { sender: 'ai', text: respuestaIA }]);
     } catch (error) {
       console.error("Error con la IA:", error);
       setMensajesAi(prev => [...prev, { sender: 'ai', text: "Error de conexión con el Asistente Cloud." }]);

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const API_URL = "https://script.google.com/macros/s/AKfycbxCqT8KKmGfZibum0iIavfrjb_OqCIn_JEGc3qf-RL99sWFxdzczTynKLM6xK8d6_E0/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbw5xLfvYIZMNAWNC1J5hQW88nEfmjNJQRFTLbd_lyWBaOKsUX1_iwYZfkJ-nYum2dGS/exec";
 
 export function AIAssistant() {
   const [prompt, setPrompt] = useState('');
