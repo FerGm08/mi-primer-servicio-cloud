@@ -19,13 +19,20 @@ function App() {
   const [precio, setPrecio] = useState("");
   const [categoria, setCategoria] = useState("");
   const [stock, setStock] = useState("");
-  const [idEditando, setIdEditando] = useState(null); // Si tiene valor, estamos editando
+  const [idEditando, setIdEditando] = useState(null);
 
   // Estados para el buscador y filtro
   const [busqueda, setBusqueda] = useState("");
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState("Todas");
 
-  // Estado del servicio (Reto 3)
+  // Estados para el Asistente Cloud con IA (Gemini)
+  const [promptAi, setPromptAi] = useState("");
+  const [mensajesAi, setMensajesAi] = useState([
+    { sender: 'ai', text: '¡Hola! Soy tu Asistente Cloud con IA. Pregúntame sobre el inventario, stock o precios.' }
+  ]);
+  const [cargandoAi, setCargandoAi] = useState(false);
+
+  // Estado del servicio
   const [estadoServicio] = useState({
     estado: "Online",
     servidor: "Google Apps Script Cloud",
@@ -70,7 +77,7 @@ function App() {
     }
 
     if (idEditando !== null) {
-      // UPDATE (Actualizar)
+      // UPDATE
       try {
         await fetch(APPS_SCRIPT_URL, {
           method: "POST",
@@ -97,7 +104,7 @@ function App() {
         alert("Hubo un error al actualizar en la nube.");
       }
     } else {
-      // CREATE (Crear)
+      // CREATE
       try {
         const response = await fetch(APPS_SCRIPT_URL, {
           method: "POST",
@@ -125,7 +132,6 @@ function App() {
       }
     }
 
-    // Limpiar formulario
     setNombre("");
     setPrecio("");
     setCategoria("");
@@ -158,6 +164,34 @@ function App() {
         console.error("Error al eliminar el registro:", error);
         alert("Hubo un error al eliminar en la nube.");
       }
+    }
+  };
+
+  // Manejador del Asistente de IA (Gemini)
+  const handleEnviarAi = async (e) => {
+    e.preventDefault();
+    if (!promptAi.trim()) return;
+
+    const consultaUsuario = promptAi;
+    setMensajesAi(prev => [...prev, { sender: 'user', text: consultaUsuario }]);
+    setPromptAi("");
+    setCargandoAi(true);
+
+    try {
+      const response = await fetch(APPS_SCRIPT_URL, {
+        method: "POST",
+        body: JSON.stringify({
+          action: "ask_ai",
+          prompt: consultaUsuario
+        })
+      });
+      const data = await response.json();
+      setMensajesAi(prev => [...prev, { sender: 'ai', text: data.response || "Respuesta recibida de la IA." }]);
+    } catch (error) {
+      console.error("Error con la IA:", error);
+      setMensajesAi(prev => [...prev, { sender: 'ai', text: "Error de conexión con el Asistente Cloud." }]);
+    } finally {
+      setCargandoAi(false);
     }
   };
 
@@ -199,7 +233,7 @@ function App() {
     );
   }
 
-  // Filtrado de productos (Funcionalidad Adicional)
+  // Filtrado de productos
   const categorias = ["Todas", ...new Set(productos.map((p) => p.categoria || "Sin Categoría"))];
   const productosFiltrados = productos.filter((producto) => {
     const nombreProd = producto.nombre || "";
@@ -230,7 +264,7 @@ function App() {
       </div>
 
       <div style={styles.mainGrid}>
-        {/* Formulario CRUD (Crear / Modificar) */}
+        {/* Formulario CRUD */}
         <div style={styles.card}>
           <h3 style={styles.cardTitle}>{idEditando !== null ? "✏️ Editar Producto" : "➕ Agregar Nuevo Producto"}</h3>
           <form onSubmit={handleSubmitProducto} style={styles.formGrid}>
@@ -267,7 +301,7 @@ function App() {
           </form>
         </div>
 
-        {/* Sección de Búsqueda y Filtros */}
+        {/* Búsqueda y Filtros */}
         <div style={styles.card}>
           <h3 style={styles.cardTitle}>🔍 Buscar y Filtrar</h3>
           <div style={{ display: "flex", gap: "15px", flexWrap: "wrap" }}>
@@ -298,7 +332,7 @@ function App() {
           </div>
         </div>
 
-        {/* Tabla de Registros CRUD */}
+        {/* Tabla de Registros */}
         <div style={styles.card}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
             <h3 style={styles.cardTitle}><span style={{ margin: 0 }}>📋 Tabla de Registros</span></h3>
@@ -343,6 +377,48 @@ function App() {
             </div>
           )}
         </div>
+
+        {/* 🤖 Módulo del Asistente Cloud con IA (Gemini) */}
+        <div style={{ ...styles.card, borderLeft: "4px solid #38bdf8" }}>
+          <h3 style={styles.cardTitle}>🤖 Asistente Cloud con Inteligencia Artificial</h3>
+          <p style={{ fontSize: "0.85rem", color: "#94a3b8", marginBottom: "15px" }}>
+            Consulta en lenguaje natural el estado de tu inventario mediante Google Gemini API.
+          </p>
+          
+          <div style={{ maxHeight: "220px", overflowY: "auto", marginBottom: "15px", padding: "10px", background: "#0f172a", borderRadius: "8px", border: "1px solid #334155" }}>
+            {mensajesAi.map((msg, index) => (
+              <div key={index} style={{ textAlign: msg.sender === 'user' ? 'right' : 'left', margin: "8px 0" }}>
+                <span style={{ 
+                  background: msg.sender === 'user' ? '#3b82f6' : '#334155', 
+                  color: "#fff", 
+                  padding: "8px 12px", 
+                  borderRadius: "12px", 
+                  display: "inline-block",
+                  fontSize: "0.9rem",
+                  maxWidth: "80%",
+                  textAlign: "left"
+                }}>
+                  {msg.text}
+                </span>
+              </div>
+            ))}
+            {cargandoAi && <p style={{ fontSize: "0.8rem", color: "#38bdf8", textAlign: "center" }}>Analizando inventario con Gemini...</p>}
+          </div>
+
+          <form onSubmit={handleEnviarAi} style={{ display: "flex", gap: "10px" }}>
+            <input
+              type="text"
+              value={promptAi}
+              onChange={(e) => setPromptAi(e.target.value)}
+              placeholder="Ej: ¿Qué productos tienen poco stock?"
+              style={{ ...styles.input, flex: 1 }}
+            />
+            <button type="submit" disabled={cargandoAi} style={{ ...styles.primaryButton, background: "#38bdf8", color: "#0f172a" }}>
+              Preguntar
+            </button>
+          </form>
+        </div>
+
       </div>
     </div>
   );
